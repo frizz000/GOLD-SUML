@@ -71,3 +71,8 @@ class GoldDataFetcher:
         print(f"Dane zostały zapisane do pliku: {self.output_file}")
 
         return gold_data
+
+
+# Pobieranie danych dla symbolu GC=F (kontrakt na złoto) z interwałem 1-godzinnym
+data_fetcher = GoldDataFetcher(output_file="gold_hourly_data_transformed.csv")
+gold_data = data_fetcher.fetch_data()

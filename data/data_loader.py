@@ -49,3 +49,5 @@ class DataLoader:
         X = self.data[feature_columns]
         y = self.data['Close']
         return X, y
+
+
