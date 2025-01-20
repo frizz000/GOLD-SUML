@@ -8,12 +8,21 @@ class DataLoader:
 
     def load_data(self):
         # Wczytanie danych z pliku CSV
-        self.data = pd.read_csv(self.filepath, parse_dates=['Datetime'], index_col='Datetime')
-        if self.data.empty:
-            raise ValueError(f"Plik {self.filepath} jest pusty lub dane są niekompletne.")
+        try:
+            self.data = pd.read_csv(self.filepath, parse_dates=['Datetime'], index_col='Datetime')
+            if self.data.empty:
+                raise ValueError(f"Plik {self.filepath} jest pusty lub dane są niekompletne.")
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Plik {self.filepath} nie został znaleziony.")
+        except Exception as e:
+            raise ValueError(f"Wystąpił błąd podczas wczytywania pliku {self.filepath}: {e}")
 
         # Wybór interesujących kolumn
-        self.data = self.data[['Close', 'Volume']]
+        required_columns = ['Close', 'Volume']
+        for column in required_columns:
+            if column not in self.data.columns:
+                raise ValueError(f"Brak wymaganej kolumny: {column}")
+        self.data = self.data[required_columns]
 
     def prepare_features(self):
         # Tworzenie dodatkowych cech na podstawie danych historycznych
