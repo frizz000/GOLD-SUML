@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 from tqdm import tqdm
 
+
 class GoldDataFetcher:
     def __init__(self, symbol="GC=F", interval="1h", years=2, output_file="gold_hourly_data.csv"):
         self.symbol = symbol
@@ -11,10 +12,12 @@ class GoldDataFetcher:
         self.output_file = output_file
 
     def fetch_data(self):
+        # Obliczenie zakresu dat
         max_days = self.years * 365
         start_date = datetime.datetime.now() - datetime.timedelta(days=max_days)
         end_date = datetime.datetime.now()
 
+        # Pobieranie danych w tygodniowych partiach
         data_parts = []
         step = datetime.timedelta(weeks=1)
         current_date = start_date
@@ -25,6 +28,7 @@ class GoldDataFetcher:
         while current_date < end_date:
             next_date = min(current_date + step, end_date)
             try:
+                # Pobieranie danych dla określonego okresu
                 part_data = yf.download(
                     self.symbol, start=current_date, end=next_date, interval=self.interval, progress=False
                 )
@@ -43,22 +47,25 @@ class GoldDataFetcher:
         if not data_parts:
             raise ValueError(f"Nie udało się pobrać żadnych danych dla symbolu '{self.symbol}'.")
 
+        # Łączenie wszystkich fragmentów danych
         gold_data = pd.concat(data_parts)
 
         # Debugowanie struktury danych
-        print("Struktura pobranych danych:")
+        print("Debugowanie struktury danych:")
         print(gold_data.head())
         print(f"Liczba kolumn: {len(gold_data.columns)}")
 
         gold_data.reset_index(inplace=True)
-        if len(gold_data.columns) >= 7:
+        if len(gold_data.columns) >= 6:  # Jeśli dane mają co najmniej 6 kolumn
             gold_data.columns = ["Datetime", "Open", "High", "Low", "Close", "Adj Close", "Volume"]
         else:
-            raise ValueError("Pobrane dane mają nieprawidłowy format lub za mało kolumn.")
+            raise ValueError(f"Pobrane dane mają nieprawidłowy format: {gold_data.columns}")
 
+        # Konwersja i czyszczenie danych
         gold_data['Datetime'] = pd.to_datetime(gold_data['Datetime'], errors='coerce')
         gold_data.dropna(subset=['Datetime'], inplace=True)
 
+        # Zapis danych do pliku CSV
         gold_data.to_csv(self.output_file, index=False)
         print(f"Dane zostały zapisane do pliku: {self.output_file}")
 
